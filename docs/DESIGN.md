@@ -1,4 +1,4 @@
-# Meal Tracker — Design & Decisions
+# Gram — Design & Decisions
 
 > Living document. Status as of 2026-06-23.
 > This locks in the **tech stack & architecture**. Data model and UX/UI are designed
@@ -262,3 +262,4 @@ browser, free-text search (dropdowns only).
 | 2026-06-23 | Nutrition = full label set on `food` (per 100g); `entry` stores a computed snapshot. |
 | 2026-06-23 | Entry snapshot rounded to 3 decimals. Styling = Tailwind + DaisyUI. |
 | 2026-06-23 | v1 UI = single scrappy page (today total + flat list + add-item form). |
+| 2026-06-24 | Named the app **Gram** (provisional; rebrand if ever published). |

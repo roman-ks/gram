@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Meal Tracker", lifespan=lifespan)
+app = FastAPI(title="Gram", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

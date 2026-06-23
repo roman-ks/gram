@@ -1,4 +1,4 @@
-# Meal Tracker
+# Gram
 
 Self-hosted meal/calorie tracker. Svelte (Tailwind + DaisyUI) SPA + FastAPI + SQLite,
 runs in Docker on a Raspberry Pi. Design & decisions: [docs/DESIGN.md](docs/DESIGN.md).
