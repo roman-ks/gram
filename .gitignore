@@ -1,0 +1,17 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# node / build
+node_modules/
+frontend/dist/
+
+# data / local
+*.db
+data/
+.env
+
+# browser-test artifacts
+.playwright-mcp/
+/*.png
