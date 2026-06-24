@@ -1,5 +1,13 @@
+networks:
+  default:
+    name: gram_net
+    external: true
+
 services:
   app:
+    labels:
+      - "traefik.http.services.gram.loadbalancer.server.port=8000"
+      - "traefik.docker.network=gram_net"
     build: .
     ports:
       - "8000:8000"
