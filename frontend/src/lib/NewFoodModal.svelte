@@ -1,20 +1,20 @@
 <script>
   import { createEventDispatcher } from 'svelte'
   import { api } from './api.js'
+  import { t } from './i18n.js'
 
   const dispatch = createEventDispatcher()
 
-  // Each row: [key, label, required]
+  // Each row: [key, i18n-key, required]
   const ROWS = [
-    [['calories',     'Calories (kcal)', true],  ['protein',       'Protein (g)',       true]],
-    [['carbohydrate', 'Carbs (g)',       true],  ['sugar',         'Sugar (g)',         false]],
-    [['fat',          'Fat (g)',         true],  ['saturated_fat', 'Saturated fat (g)', false]],
-    [['fiber',        'Fiber (g)',       false], ['salt',          'Salt (g)',          false]],
+    [['calories',     'fld_calories',     true],  ['protein',       'fld_protein',       true]],
+    [['carbohydrate', 'fld_carbohydrate', true],  ['sugar',         'fld_sugar',         false]],
+    [['fat',          'fld_fat',          true],  ['saturated_fat', 'fld_saturated_fat', false]],
+    [['fiber',        'fld_fiber',        false], ['salt',          'fld_salt',          false]],
   ]
 
   const REQUIRED = ['calories', 'protein', 'carbohydrate', 'fat']
   const OPTIONAL = ['sugar', 'saturated_fat', 'fiber', 'salt']
-  const LABELS = { calories: 'Calories', protein: 'Protein', carbohydrate: 'Carbs', fat: 'Fat' }
 
   let f = {
     name: '', calories: '', protein: '', carbohydrate: '', fat: '',
@@ -25,9 +25,9 @@
 
   async function save() {
     error = ''
-    if (!f.name.trim()) return (error = 'Name is required')
+    if (!f.name.trim()) return (error = t('err_name_req'))
     for (const k of REQUIRED) {
-      if (f[k] === '' || f[k] == null) return (error = `${LABELS[k]} is required`)
+      if (f[k] === '' || f[k] == null) return (error = t('err_field_req', t(`lbl_${k}`)))
     }
     saving = true
     try {
@@ -46,23 +46,23 @@
 
 <div class="modal modal-open">
   <div class="modal-box">
-    <h3 class="font-bold text-lg mb-4">New food <span class="opacity-50 text-sm">(per 100 g)</span></h3>
+    <h3 class="font-bold text-lg mb-4">{t('modal_title')} <span class="opacity-50 text-sm">({t('per_100g')})</span></h3>
 
     {#if error}<div class="alert alert-error text-sm mb-3">{error}</div>{/if}
 
     <div class="field mb-3">
       <input id="f-name" class="input input-bordered w-full" placeholder=" " bind:value={f.name} />
-      <label for="f-name">Name</label>
+      <label for="f-name">{t('fld_name')}</label>
     </div>
 
     <div class="grid grid-cols-2 gap-2">
       {#each ROWS as row}
-        {#each row as [key, label, required]}
+        {#each row as [key, labelKey, required]}
           <div class="field">
             <input id="f-{key}" type="number" inputmode="decimal" placeholder=" "
                    class="input input-bordered w-full" bind:value={f[key]} />
             <label for="f-{key}">
-              {label}{#if !required}<span class="opt"> opt</span>{/if}
+              {t(labelKey)}{#if !required}<span class="opt"> {t('opt')}</span>{/if}
             </label>
           </div>
         {/each}
@@ -70,8 +70,8 @@
     </div>
 
     <div class="modal-action">
-      <button class="btn btn-ghost" on:click={() => dispatch('close')}>Cancel</button>
-      <button class="btn btn-primary" on:click={save} disabled={saving}>Save food</button>
+      <button class="btn btn-ghost" on:click={() => dispatch('close')}>{t('cancel')}</button>
+      <button class="btn btn-primary" on:click={save} disabled={saving}>{t('save_food')}</button>
     </div>
   </div>
 </div>
