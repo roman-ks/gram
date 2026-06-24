@@ -5,6 +5,7 @@ networks:
 
 services:
   app:
+    container_name: gram
     labels:
       - "traefik.http.services.gram.loadbalancer.server.port=8000"
       - "traefik.docker.network=gram_net"
@@ -13,8 +14,6 @@ services:
       - "8000:8000"
     volumes:
       - meal-data:/data
-    networks:
-      - gram_net
     restart: unless-stopped
 
 volumes:
