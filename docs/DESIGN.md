@@ -30,6 +30,7 @@ A small, self-hosted meal/calorie tracker for personal use:
 | Layer | Choice | Why |
 |---|---|---|
 | Frontend | **Svelte SPA** (Vite, plain Svelte — no SSR) | Lightweight, great mobile DX, compiles to static assets (Capacitor-ready). |
+| i18n | `src/lib/i18n.js` — plain JS translation map, `t(key)` function | No extra deps. Language detected from `navigator.languages` (same source as `Accept-Language`). **All UI strings must go through `t()` — never hardcode display text in components.** Add new languages / keys there. |
 | Styling | **Tailwind + DaisyUI** | Utilities for fast iteration + ready dropdown/modal components. |
 | Backend | **Python + FastAPI** (JSON API) | Async, typed, simple; serves API + static SPA. |
 | Database | **SQLite** (file on a mounted volume) | Single-user, zero-ops, perfect for a Pi. |
@@ -263,3 +264,4 @@ browser, free-text search (dropdowns only).
 | 2026-06-23 | Entry snapshot rounded to 3 decimals. Styling = Tailwind + DaisyUI. |
 | 2026-06-23 | v1 UI = single scrappy page (today total + flat list + add-item form). |
 | 2026-06-24 | Named the app **Gram** (provisional; rebrand if ever published). |
+| 2026-06-24 | i18n via `src/lib/i18n.js` (`t()` + `navigator.languages`); en + uk supported. `?lang=` param overrides. |
