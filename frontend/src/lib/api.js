@@ -18,4 +18,5 @@ export const api = {
   addFood: (body) => req('/foods', { method: 'POST', body: JSON.stringify(body) }),
   sameMeal: (meal, days = 5) => req(`/suggestions/same-meal?meal=${meal}&days=${days}`),
   popular: (meal) => req(`/suggestions/popular${meal ? `?meal=${meal}` : ''}`),
+  allFoods: () => req('/foods'),
 }

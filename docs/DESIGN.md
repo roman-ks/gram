@@ -198,10 +198,10 @@ each present field (NULL stays NULL). 3 decimals keeps sub-gram portions honest
   optional per-food serving weights can come later.
 - Foods are deduplicated by picking from the catalogue; no auto-merge in v1.
 
-## 9. UX/UI — initial version
+## 9. UX/UI — current version
 
-Deliberately scrappy; expected to change a lot. **One mobile-first page**, no routing
-except the new-food popup. No grouping, no nesting, no edit/delete UI yet.
+**One mobile-first page**, no routing except the new-food popup. No grouping, no nesting,
+no edit/delete UI yet.
 
 Layout (top → bottom):
 
@@ -215,7 +215,14 @@ Layout (top → bottom):
 │ …                           │
 ├─────────────────────────────┤
 │ [ Breakfast ▾ ]             │  ← meal slot (defaults to last used)
-│ [ Top this slot ▾ ] [Food ▾]│  ← source dropdown → food dropdown
+│ All | Recent | Top slot | … │  ← source tab strip (horizontally scrollable)
+│ ┌─────────────────────────┐ │
+│ │ Eggs                    │ │
+│ │ Oat flakes              │ │  ← food list (5-item fixed height, scrollable)
+│ │ Bread                   │ │     tap to select; active item highlighted
+│ │ Chicken                 │ │
+│ │ Rice                    │ │
+│ └─────────────────────────┘ │
 │ [ + Add missing ]           │  ← opens new-food popup
 │ [ grams ____ ]   [ Save ]   │  ← weight + submit
 └─────────────────────────────┘
@@ -223,25 +230,27 @@ Layout (top → bottom):
 
 ### Add-item form
 - **Slot dropdown** — breakfast/lunch/dinner/snack; defaults to last-used (frontend-stored).
-- **Source dropdown (level 1)** — which suggestion list to pull from:
-  `Recent (same meal, last 5 days)` · `Top this slot` · `Top overall`. The first two are
-  slot-specific → refetch when the slot changes.
-- **Food dropdown (level 2)** — items returned by the chosen source; pick one.
-- **Add missing** — food not in any list → opens the **new-food popup** (modal/page) with
-  the per-100g nutrition form (calories + macros required; sat-fat, sugar, fiber, salt
-  optional). Saving `POST /api/foods`, then selects it back into the form.
-- **Weight** — single grams field.
+  Changing slot resets the source tab to `Recent (same meal)`.
+- **Source tab strip** — horizontally scrollable strip of four tabs that controls which
+  food list is shown:
+  - `All` — full food catalogue (`GET /api/foods`)
+  - `Recent (same meal)` — foods eaten at this slot in the last 5 days (default)
+  - `Top this slot` — most popular foods for this slot (distinct-days ranking)
+  - `Top overall` — most popular foods regardless of slot
+  Tapping a tab fetches the relevant list and updates the food list below.
+- **Food list** — fixed-height container (exactly 5 base-item heights; scrolls if more).
+  Each row has a minimum height; long names word-wrap within that height. Tapping a row
+  selects it (highlighted) and pre-fills the last-used gram amount if available.
+- **Add missing** — food not in any list → opens the **new-food popup** (modal) with the
+  per-100g nutrition form (calories + macros required; sat-fat, sugar, fiber, salt
+  optional). Saving `POST /api/foods`, then selects the new food in the list.
+- **Weight** — single grams field; pre-filled from the selected item's last logged amount.
 - **Save** — `POST /api/entries {food_id, amount_grams, meal, consumed_date=today}`; the
   response (with computed calories) is appended to the list and added to the total.
 
-### State (v1 shortcut)
-Today's list + running total may live in **frontend state only** for now — append on save,
-no reload persistence. Swapping to `GET /api/entries/today` + `GET /api/today/summary` on
-page load is a one-liner when we want refresh-survival (recommended soon).
-
 ### Out of scope for this UI pass
 Edit/delete entries, grouping by meal, macros display (calories total only), history
-browser, free-text search (dropdowns only).
+browser, free-text food search.
 
 ## 10. Open / Next
 
@@ -265,3 +274,4 @@ browser, free-text search (dropdowns only).
 | 2026-06-23 | v1 UI = single scrappy page (today total + flat list + add-item form). |
 | 2026-06-24 | Named the app **Gram** (provisional; rebrand if ever published). |
 | 2026-06-24 | i18n via `src/lib/i18n.js` (`t()` + `navigator.languages`); en + uk supported. `?lang=` param overrides. |
+| 2026-06-25 | Replaced source + food dropdowns with a tab strip (All / Recent / Top slot / Top overall) and a scrollable food list (5-item fixed height). |

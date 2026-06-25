@@ -5,11 +5,16 @@
   import { t } from './lib/i18n.js'
 
   const SLOTS = ['breakfast', 'lunch', 'dinner', 'snack']
-  const SOURCES = [
+  const TABS = [
+    { id: 'all',         key: 'src_all' },
     { id: 'recent',      key: 'src_recent' },
     { id: 'top_slot',    key: 'src_top_slot' },
     { id: 'top_overall', key: 'src_top_overall' },
   ]
+
+  // Item height used as the fixed unit for list height calculation (2.75rem = 44px).
+  const ITEM_H = '2.75rem'
+  const LIST_ITEMS = 5
 
   let meal = localStorage.getItem('lastMeal') || 'breakfast'
   let source = 'recent'
@@ -34,9 +39,16 @@
   async function loadSuggestions() {
     error = ''
     try {
-      if (source === 'recent') suggestions = await api.sameMeal(meal)
-      else if (source === 'top_slot') suggestions = await api.popular(meal)
-      else suggestions = await api.popular(null)
+      if (source === 'all') {
+        const foods = await api.allFoods()
+        suggestions = foods.map((f) => ({ food_id: f.id, food_name: f.name, last_amount_grams: null }))
+      } else if (source === 'recent') {
+        suggestions = await api.sameMeal(meal)
+      } else if (source === 'top_slot') {
+        suggestions = await api.popular(meal)
+      } else {
+        suggestions = await api.popular(null)
+      }
 
       if (!suggestions.some((s) => s.food_id === selectedFoodId)) {
         selectedFoodId = suggestions[0]?.food_id ?? ''
@@ -48,8 +60,13 @@
   }
 
   function prefillGrams() {
-    const s = suggestions.find((x) => x.food_id === selectedFoodId)
-    grams = s?.last_amount_grams ?? ''
+    const item = suggestions.find((x) => x.food_id === selectedFoodId)
+    grams = item?.last_amount_grams ?? ''
+  }
+
+  function selectFood(foodId) {
+    selectedFoodId = foodId
+    prefillGrams()
   }
 
   async function save() {
@@ -101,22 +118,55 @@
 
   <!-- add-item form -->
   <div class="space-y-2">
-    <select class="select select-bordered w-full" bind:value={meal}>
+    <select
+      class="select select-bordered w-full"
+      bind:value={meal}
+      on:change={() => (source = 'recent')}
+    >
       {#each SLOTS as s}<option value={s}>{t('slot_' + s)}</option>{/each}
     </select>
 
-    <div class="flex gap-2">
-      <select class="select select-bordered flex-1" bind:value={source}>
-        {#each SOURCES as s}<option value={s.id}>{t(s.key)}</option>{/each}
-      </select>
-      <select
-        class="select select-bordered flex-1"
-        bind:value={selectedFoodId}
-        on:change={prefillGrams}
-      >
-        {#if suggestions.length === 0}<option value="">{t('none')}</option>{/if}
-        {#each suggestions as s}<option value={s.food_id}>{s.food_name}</option>{/each}
-      </select>
+    <!-- source tab strip -->
+    <div class="overflow-x-auto">
+      <div role="tablist" class="tabs tabs-bordered flex-nowrap min-w-full">
+        {#each TABS as tab}
+          <button
+            role="tab"
+            class="tab whitespace-nowrap {source === tab.id ? 'tab-active' : ''}"
+            on:click={() => (source = tab.id)}
+          >
+            {t(tab.key)}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- food list: fixed height = 5 items, scrolls if more -->
+    <div
+      class="border border-base-300 rounded-box overflow-y-auto"
+      style="height: calc({LIST_ITEMS} * {ITEM_H})"
+    >
+      {#if suggestions.length === 0}
+        <div
+          class="flex items-center px-3 opacity-40 break-words"
+          style="min-height: {ITEM_H}"
+        >
+          {t('none')}
+        </div>
+      {:else}
+        {#each suggestions as s}
+          <button
+            class="w-full text-left px-3 break-words leading-snug
+              {selectedFoodId === s.food_id
+                ? 'bg-primary text-primary-content'
+                : 'hover:bg-base-200'}"
+            style="min-height: {ITEM_H}; display: flex; align-items: center;"
+            on:click={() => selectFood(s.food_id)}
+          >
+            {s.food_name}
+          </button>
+        {/each}
+      {/if}
     </div>
 
     <button class="btn btn-outline btn-sm w-full" on:click={() => (showModal = true)}>
