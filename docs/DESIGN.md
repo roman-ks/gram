@@ -276,3 +276,4 @@ browser, free-text food search.
 | 2026-06-24 | i18n via `src/lib/i18n.js` (`t()` + `navigator.languages`); en + uk supported. `?lang=` param overrides. |
 | 2026-06-25 | Replaced source + food dropdowns with a tab strip (All / Recent / Top slot / Top overall) and a scrollable food list (5-item fixed height). |
 | 2026-06-26 | Implemented PWA support: manifest.json with metadata/icons, service worker for offline caching, HTML meta tags. Enables Chrome WebAPK install on Android and iOS app shortcut fallback. |
+| 2026-06-26 | Updated brand colors: primary #E8B89F (Soft Peachy) + secondary #D4956E. Replaces generic blue-purple (#4F46E5). Improves brand personality and warmth; excellent contrast ratios for accessibility. |
