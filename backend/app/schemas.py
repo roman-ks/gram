@@ -18,6 +18,17 @@ class FoodIn(BaseModel):
     salt: Optional[float] = None
 
 
+class IngredientIn(BaseModel):
+    food_id: int
+    grams: float = Field(gt=0)
+
+
+class RecipeIn(BaseModel):
+    name: str = Field(min_length=1)
+    cooked_weight: float = Field(gt=0)
+    ingredients: list[IngredientIn] = Field(min_length=1)
+
+
 class EntryIn(BaseModel):
     food_id: int
     amount_grams: float = Field(gt=0)

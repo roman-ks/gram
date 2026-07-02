@@ -1,7 +1,7 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
   import { api } from './api.js'
-  import NewFoodModal from './NewFoodModal.svelte'
+  import NewFoodPage from './NewFoodPage.svelte'
   import { t } from './i18n.js'
 
   export let meal
@@ -21,7 +21,7 @@
   let grams = ''
   let loading = false
   let error = ''
-  let showModal = false
+  let showNewFood = false
 
   $: source, meal, loadSuggestions()
 
@@ -74,79 +74,82 @@
   }
 
   function onFoodCreated(food) {
-    showModal = false
+    showNewFood = false
     suggestions = [{ food_id: food.id, food_name: food.name, last_amount_grams: null }, ...suggestions]
     selectedFoodId = food.id
     grams = ''
   }
 </script>
 
-<div class="flex flex-col h-dvh max-w-md mx-auto">
-  <!-- back -->
-  <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
-    <button class="btn btn-ghost btn-sm" on:click={() => dispatch('back')}>
-      ← {t('back')}
-    </button>
-    <span class="text-sm font-medium opacity-60">{t('slot_' + meal)}</span>
-  </div>
+{#if showNewFood}
+  <NewFoodPage
+    on:created={(e) => onFoodCreated(e.detail)}
+    on:back={() => (showNewFood = false)}
+  />
+{:else}
+  <div class="flex flex-col h-dvh max-w-md mx-auto">
+    <!-- back -->
+    <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
+      <button class="btn btn-ghost btn-sm" on:click={() => dispatch('back')}>
+        ← {t('back')}
+      </button>
+      <span class="text-sm font-medium opacity-60">{t('slot_' + meal)}</span>
+    </div>
 
-  <!-- tab strip -->
-  <div class="overflow-x-auto shrink-0 px-2 pt-2 pb-1">
-    <div role="tablist" class="flex gap-1 flex-nowrap min-w-max">
-      {#each TABS as tab}
-        <button
-          role="tab"
-          class="px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
-            {source === tab.id
-              ? 'bg-primary text-primary-content'
-              : 'bg-base-200 text-base-content hover:bg-base-300'}"
-          on:click={() => (source = tab.id)}
-        >
-          {t(tab.key)}
-        </button>
-      {/each}
+    <!-- tab strip -->
+    <div class="overflow-x-auto shrink-0 px-2 pt-2 pb-1">
+      <div role="tablist" class="flex gap-1 flex-nowrap min-w-max">
+        {#each TABS as tab}
+          <button
+            role="tab"
+            class="px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
+              {source === tab.id
+                ? 'bg-primary text-primary-content'
+                : 'bg-base-200 text-base-content hover:bg-base-300'}"
+            on:click={() => (source = tab.id)}
+          >
+            {t(tab.key)}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    {#if error}<div class="alert alert-error text-sm mx-2 my-1 shrink-0">{error}</div>{/if}
+
+    <!-- food list fills remaining space -->
+    <div class="flex-1 overflow-y-auto mx-2 border border-base-300 rounded-box">
+      {#if suggestions.length === 0}
+        <div class="flex items-center px-3 py-4 opacity-40">{t('none')}</div>
+      {:else}
+        {#each suggestions as s}
+          <button
+            class="w-full text-left px-3 py-3 border-b border-base-100 break-words leading-snug
+              {selectedFoodId === s.food_id
+                ? 'bg-primary text-primary-content'
+                : 'hover:bg-base-200'}"
+            on:click={() => selectFood(s.food_id)}
+          >
+            {s.food_name}
+          </button>
+        {/each}
+      {/if}
+    </div>
+
+    <!-- bottom bar: always visible -->
+    <div class="shrink-0 p-2 border-t border-base-200 space-y-2">
+      <button class="btn btn-outline btn-sm w-full" on:click={() => (showNewFood = true)}>
+        {t('add_missing')}
+      </button>
+      <div class="flex gap-2">
+        <input
+          class="input input-bordered flex-1"
+          type="number"
+          inputmode="decimal"
+          placeholder={t('grams_ph')}
+          bind:value={grams}
+        />
+        <button class="btn btn-primary" on:click={save} disabled={loading}>💾</button>
+      </div>
     </div>
   </div>
-
-  {#if error}<div class="alert alert-error text-sm mx-2 my-1 shrink-0">{error}</div>{/if}
-
-  <!-- food list fills remaining space -->
-  <div class="flex-1 overflow-y-auto mx-2 border border-base-300 rounded-box">
-    {#if suggestions.length === 0}
-      <div class="flex items-center px-3 py-4 opacity-40">{t('none')}</div>
-    {:else}
-      {#each suggestions as s}
-        <button
-          class="w-full text-left px-3 py-3 border-b border-base-100 break-words leading-snug
-            {selectedFoodId === s.food_id
-              ? 'bg-primary text-primary-content'
-              : 'hover:bg-base-200'}"
-          on:click={() => selectFood(s.food_id)}
-        >
-          {s.food_name}
-        </button>
-      {/each}
-    {/if}
-  </div>
-
-  <!-- bottom bar: always visible -->
-  <div class="shrink-0 p-2 border-t border-base-200 space-y-2">
-    <button class="btn btn-outline btn-sm w-full" on:click={() => (showModal = true)}>
-      {t('add_missing')}
-    </button>
-    <div class="flex gap-2">
-      <input
-        class="input input-bordered flex-1"
-        type="number"
-        inputmode="decimal"
-        placeholder={t('grams_ph')}
-        bind:value={grams}
-      />
-      <button class="btn btn-primary" on:click={save} disabled={loading}>💾</button>
-    </div>
-  </div>
-</div>
-
-{#if showModal}
-  <NewFoodModal on:created={(e) => onFoodCreated(e.detail)} on:close={() => (showModal = false)} />
 {/if}

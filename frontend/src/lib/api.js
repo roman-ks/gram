@@ -19,4 +19,5 @@ export const api = {
   sameMeal: (meal, days = 5) => req(`/suggestions/same-meal?meal=${meal}&days=${days}`),
   popular: (meal) => req(`/suggestions/popular${meal ? `?meal=${meal}` : ''}`),
   allFoods: () => req('/foods?limit=1000'),
+  createRecipe: (body) => req('/recipes', { method: 'POST', body: JSON.stringify(body) }),
 }

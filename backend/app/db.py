@@ -42,6 +42,19 @@ CREATE TABLE IF NOT EXISTS entry (
 CREATE INDEX IF NOT EXISTS idx_entry_date      ON entry(consumed_date);
 CREATE INDEX IF NOT EXISTS idx_entry_meal_date ON entry(meal, consumed_date);
 CREATE INDEX IF NOT EXISTS idx_entry_food      ON entry(food_id);
+
+CREATE TABLE IF NOT EXISTS recipe (
+  id         INTEGER PRIMARY KEY,
+  food_id    INTEGER NOT NULL REFERENCES food(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS recipe_ingredient (
+  id        INTEGER PRIMARY KEY,
+  recipe_id INTEGER NOT NULL REFERENCES recipe(id),
+  food_id   INTEGER NOT NULL REFERENCES food(id),
+  grams     REAL NOT NULL
+);
 """
 
 

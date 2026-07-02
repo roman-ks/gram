@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from . import config, db
-from .routers import entries, foods, suggestions
+from .routers import entries, foods, recipes, suggestions
 
 
 @asynccontextmanager
@@ -28,6 +28,7 @@ api = APIRouter(prefix="/api")
 api.include_router(foods.router)
 api.include_router(entries.router)
 api.include_router(suggestions.router)
+api.include_router(recipes.router)
 app.include_router(api)
 
 
