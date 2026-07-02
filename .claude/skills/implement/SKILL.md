@@ -38,3 +38,5 @@ When you invoke this skill, follow these steps:
 - Use **Bash** to move the file: `mv docs/changes/open/FILENAME docs/changes/done/FILENAME`
 - Tick the acceptance criteria boxes in the spec as proof of completion
 - Keep CHANGELOG.md entries concise (one line per change)
+- CHANGELOG.md is located in docs/changes/CHANGELOG.md
+

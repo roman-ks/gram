@@ -22,6 +22,7 @@
   let loading = false
   let error = ''
   let showNewFood = false
+  let foodsMap = {}  // food_id -> full food object (for nutrition preview)
 
   $: source, meal, loadSuggestions()
 
@@ -30,13 +31,21 @@
     try {
       if (source === 'all') {
         const foods = await api.allFoods()
+        foodsMap = Object.fromEntries(foods.map((f) => [f.id, f]))
         suggestions = foods.map((f) => ({ food_id: f.id, food_name: f.name, last_amount_grams: null }))
-      } else if (source === 'recent') {
-        suggestions = await api.sameMeal(meal)
-      } else if (source === 'top_slot') {
-        suggestions = await api.popular(meal)
       } else {
-        suggestions = await api.popular(null)
+        if (Object.keys(foodsMap).length === 0) {
+          api.allFoods().then((foods) => {
+            foodsMap = Object.fromEntries(foods.map((f) => [f.id, f]))
+          }).catch(() => {})
+        }
+        if (source === 'recent') {
+          suggestions = await api.sameMeal(meal)
+        } else if (source === 'top_slot') {
+          suggestions = await api.popular(meal)
+        } else {
+          suggestions = await api.popular(null)
+        }
       }
 
       if (!suggestions.some((s) => s.food_id === selectedFoodId)) {
@@ -75,9 +84,23 @@
 
   function onFoodCreated(food) {
     showNewFood = false
+    foodsMap = { ...foodsMap, [food.id]: food }
     suggestions = [{ food_id: food.id, food_name: food.name, last_amount_grams: null }, ...suggestions]
     selectedFoodId = food.id
     grams = ''
+  }
+
+  function fmt1(v) {
+    return v == null ? 0 : Math.round(v * 10) / 10
+  }
+
+  $: previewFood = foodsMap[selectedFoodId] ?? null
+  $: previewG = Number(grams) || 0
+  $: preview = {
+    calories: previewFood ? Math.round(previewFood.calories * previewG / 100) : 0,
+    protein:  previewFood ? fmt1(previewFood.protein  * previewG / 100) : 0,
+    fat:      previewFood ? fmt1(previewFood.fat       * previewG / 100) : 0,
+    carbs:    previewFood ? fmt1(previewFood.carbohydrate * previewG / 100) : 0,
   }
 </script>
 
@@ -150,6 +173,23 @@
         />
         <button class="btn btn-primary" on:click={save} disabled={loading}>💾</button>
       </div>
+      <div class="flex flex-wrap gap-1 px-1">
+        <span class="stat-tag bg-amber-100">⚡{preview.calories}</span>
+        <span class="stat-tag bg-blue-100">💪{preview.protein}g</span>
+        <span class="stat-tag bg-green-100">🥑{preview.fat}g</span>
+        <span class="stat-tag bg-yellow-100">🌾{preview.carbs}g</span>
+      </div>
     </div>
   </div>
 {/if}
+
+<style>
+  .stat-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+</style>

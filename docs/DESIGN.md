@@ -271,11 +271,4 @@ browser, free-text food search.
 | 2026-06-23 | `entry` stores `consumed_date` + `created_at`; frontend remembers last meal slot. |
 | 2026-06-23 | Nutrition = full label set on `food` (per 100g); `entry` stores a computed snapshot. |
 | 2026-06-23 | Entry snapshot rounded to 3 decimals. Styling = Tailwind + DaisyUI. |
-| 2026-06-23 | v1 UI = single scrappy page (today total + flat list + add-item form). |
-| 2026-06-24 | Named the app **Gram** (provisional; rebrand if ever published). |
 | 2026-06-24 | i18n via `src/lib/i18n.js` (`t()` + `navigator.languages`); en + uk supported. `?lang=` param overrides. |
-| 2026-06-25 | Replaced source + food dropdowns with a tab strip (All / Recent / Top slot / Top overall) and a scrollable food list (5-item fixed height). |
-| 2026-06-26 | Implemented PWA support: manifest.json with metadata/icons, service worker for offline caching, HTML meta tags. Enables Chrome WebAPK install on Android and iOS app shortcut fallback. |
-| 2026-06-26 | Updated brand colors: primary #E8B89F (Soft Peachy) + secondary #D4956E. Replaces generic blue-purple (#4F46E5). Improves brand personality and warmth; excellent contrast ratios for accessibility. |
-| 2026-06-29 | Split single-page UI into Today page + Add food page. No router: simple `page` state in App.svelte. AddFoodPage.svelte is a full-screen component with slot context, pill tabs, and sticky bottom bar. |
-| 2026-07-02 | Added Recipes feature: `recipe` + `recipe_ingredient` tables; `POST /api/recipes` creates a recipe food item from ingredients with per-100g nutrition computed as `sum(nutrient_per_100g * g / 100) / cooked_weight * 100`. "Add missing" modal replaced by full-page `NewFoodPage.svelte` with Meal/Recipe tabs; `AddIngredientPage.svelte` handles ingredient picking. Navigation managed via component-local flags (not lifted to App.svelte). |
