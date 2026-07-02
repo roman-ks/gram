@@ -1,10 +1,18 @@
 <script>
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import { api } from './api.js'
   import { t } from './i18n.js'
   import AddIngredientPage from './AddIngredientPage.svelte'
 
   const dispatch = createEventDispatcher()
+
+  onMount(() => {
+    function handlePop(e) {
+      if (showIngredientPicker && e.state?.d === 2) showIngredientPicker = false
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  })
 
   // ── Meal tab ────────────────────────────────────────────────────────────────
   const ROWS = [
@@ -72,10 +80,16 @@
     }
   }
 
+  function openIngredientPicker() {
+    showIngredientPicker = true
+    history.pushState({ d: 3 }, '')
+  }
+
   function onIngredientPicked(event) {
     const { food_id, food_name, grams } = event.detail
     ingredients = [...ingredients, { food_id, food_name, grams }]
     showIngredientPicker = false
+    history.back()  // pop the d:3 entry we pushed when opening AddIngredientPage
   }
 
   function removeIngredient(i) {
@@ -86,13 +100,12 @@
 {#if showIngredientPicker}
   <AddIngredientPage
     on:picked={onIngredientPicked}
-    on:back={() => (showIngredientPicker = false)}
   />
 {:else}
   <div class="flex flex-col h-dvh max-w-md mx-auto">
     <!-- header -->
     <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
-      <button class="btn btn-ghost btn-sm" on:click={() => dispatch('back')}>← {t('back')}</button>
+      <button class="btn btn-ghost btn-sm" on:click={() => history.back()}>← {t('back')}</button>
     </div>
 
     <!-- tab strip -->
@@ -163,7 +176,7 @@
 
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium">{t('ingredients')}</span>
-          <button class="btn btn-primary btn-xs" on:click={() => (showIngredientPicker = true)}>+</button>
+          <button class="btn btn-primary btn-xs" on:click={openIngredientPicker}>+</button>
         </div>
 
         <div class="border border-base-300 rounded-box overflow-hidden">

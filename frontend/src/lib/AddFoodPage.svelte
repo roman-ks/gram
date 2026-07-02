@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import { api } from './api.js'
   import NewFoodPage from './NewFoodPage.svelte'
   import { t } from './i18n.js'
@@ -7,6 +7,14 @@
   export let meal
 
   const dispatch = createEventDispatcher()
+
+  onMount(() => {
+    function handlePop(e) {
+      if (showNewFood && e.state?.d === 1) showNewFood = false
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  })
 
   const TABS = [
     { id: 'all',         key: 'src_all' },
@@ -82,8 +90,14 @@
     }
   }
 
+  function openNewFood() {
+    showNewFood = true
+    history.pushState({ d: 2 }, '')
+  }
+
   function onFoodCreated(food) {
     showNewFood = false
+    history.back()  // pop the d:2 entry we pushed when opening NewFoodPage
     foodsMap = { ...foodsMap, [food.id]: food }
     suggestions = [{ food_id: food.id, food_name: food.name, last_amount_grams: null }, ...suggestions]
     selectedFoodId = food.id
@@ -107,13 +121,12 @@
 {#if showNewFood}
   <NewFoodPage
     on:created={(e) => onFoodCreated(e.detail)}
-    on:back={() => (showNewFood = false)}
   />
 {:else}
   <div class="flex flex-col h-dvh max-w-md mx-auto">
     <!-- back -->
     <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
-      <button class="btn btn-ghost btn-sm" on:click={() => dispatch('back')}>
+      <button class="btn btn-ghost btn-sm" on:click={() => history.back()}>
         ← {t('back')}
       </button>
       <span class="text-sm font-medium opacity-60">{t('slot_' + meal)}</span>
@@ -160,7 +173,7 @@
 
     <!-- bottom bar: always visible -->
     <div class="shrink-0 p-2 border-t border-base-200 space-y-2">
-      <button class="btn btn-outline btn-sm w-full" on:click={() => (showNewFood = true)}>
+      <button class="btn btn-outline btn-sm w-full" on:click={openNewFood}>
         {t('add_missing')}
       </button>
       <div class="flex gap-2">

@@ -24,19 +24,24 @@
   function openAdd(meal) {
     activeMeal = meal
     page = 'add'
+    history.pushState({ d: 1 }, '')
   }
 
   function onSaved() {
     refreshToday().catch((e) => (error = String(e)))
   }
 
-  function onBack() {
-    page = 'today'
-    refreshToday().catch((e) => (error = String(e)))
+  function handlePopState(e) {
+    if (page === 'add' && (!e.state || e.state.d < 1)) {
+      page = 'today'
+      refreshToday().catch((err) => (error = String(err)))
+    }
   }
 
   onMount(() => {
     refreshToday().catch((e) => (error = String(e)))
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   })
 
   function fmt1(v) {
@@ -45,7 +50,7 @@
 </script>
 
 {#if page === 'add'}
-  <AddFoodPage meal={activeMeal} on:saved={onSaved} on:back={onBack} />
+  <AddFoodPage meal={activeMeal} on:saved={onSaved} />
 {:else}
   <main class="max-w-md mx-auto p-4 space-y-4">
 

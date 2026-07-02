@@ -29,7 +29,7 @@
 
 <div class="flex flex-col h-dvh max-w-md mx-auto">
   <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
-    <button class="btn btn-ghost btn-sm" on:click={() => dispatch('back')}>← {t('back')}</button>
+    <button class="btn btn-ghost btn-sm" on:click={() => history.back()}>← {t('back')}</button>
     <span class="text-sm font-medium opacity-60">{t('add_ingredient')}</span>
   </div>
 
