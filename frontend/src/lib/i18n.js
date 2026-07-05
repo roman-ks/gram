@@ -45,6 +45,7 @@ const T = {
     err_no_ingredients: 'Add at least one ingredient',
     err_cooked_weight_req: 'Enter cooked weight',
     add_ingredient: 'Add ingredient',
+    delete: 'Delete',
   },
   uk: {
     kcal_today: 'ккал сьогодні',
@@ -92,6 +93,7 @@ const T = {
     err_no_ingredients: 'Додайте хоча б один інгредієнт',
     err_cooked_weight_req: 'Введіть вагу готового',
     add_ingredient: 'Додати інгредієнт',
+    delete: 'Видалити',
   },
 }
 
