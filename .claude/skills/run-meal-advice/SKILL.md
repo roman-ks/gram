@@ -164,3 +164,4 @@ Useful for PRs touching only backend logic:
 | `npm: command not found` | Node/npm not installed. Run `apt-get install -y nodejs npm` (or homebrew on macOS). |
 | All blank page in browser, console errors | SQLite perms or corrupted `.db` file. Clear `/tmp/meals.db` and restart. |
 | Stale frontend code after git checkout | Hard-reset Vite cache: `rm -rf frontend/node_modules/.vite` then restart driver. |
+| Playwright sees old code despite page reload | Service worker serves stale assets. Unregister it first: `await page.evaluate(() => navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister()))))` then reload. Do this once at the start of each Playwright session. |
