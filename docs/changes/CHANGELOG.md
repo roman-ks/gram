@@ -3,6 +3,7 @@
 One line per shipped change, newest first. Each links its full request in `done/`.
 Format: `YYYY-MM-DD · type · summary (#NNNN)`
 
+2026-07-11 · bug · Service worker served stale index.html (old hashed asset URLs → 404) after redeploys on the same origin; navigation requests are now network-first, static assets stay cache-first (no spec)
 2026-07-05 · feature · Delete entry from Today page: long-press (mobile) or right-click (desktop) opens a floating 🗑️ context menu above the entry ([#0011](done/0011-delete-entry.md))
 2026-07-02 · bug · Fix browser back button: pushState at each nav level so the browser history matches in-app navigation ([#0010](done/0010-fix-back-button.md))
 2026-07-02 · feature · Live nutrition preview on Add food page: stat-tags below weight input update reactively as weight is typed ([#0009](done/0009-preview-meal-nutirition-values.md))
