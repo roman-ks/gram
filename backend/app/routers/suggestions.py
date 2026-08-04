@@ -25,10 +25,10 @@ def today_summary(conn=Depends(db_dep)):
 
 @router.get("/suggestions/same-meal")
 def same_meal(meal: Meal, days: int = 5, conn=Depends(db_dep)):
-    """Distinct foods eaten at this meal over the previous `days` days (excl. today)."""
+    """Distinct foods eaten at this meal over the previous `days` days (incl. today)."""
     today = datetime.date.today()
-    start = (today - datetime.timedelta(days=days)).isoformat()
-    end = (today - datetime.timedelta(days=1)).isoformat()
+    start = (today - datetime.timedelta(days=days - 1)).isoformat()
+    end = today.isoformat()
     # SQLite: with a single MAX(), bare columns come from the max row -> last amount.
     rows = conn.execute(
         """SELECT entry.food_id,

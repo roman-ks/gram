@@ -1,7 +1,5 @@
-const CACHE_NAME = 'gram-v1'
+const CACHE_NAME = 'gram-v2'
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/icon-192.svg',
   '/icon-512.svg',
   '/manifest.json'
@@ -9,10 +7,9 @@ const urlsToCache = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache)
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   )
+  self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
@@ -25,30 +22,44 @@ self.addEventListener('activate', (event) => {
           }
         })
       )
-    })
+    }).then(() => self.clients.claim())
   )
 })
 
 self.addEventListener('fetch', (event) => {
+  const { request } = event
+
   // Don't cache API requests
-  if (event.request.url.includes('/api/')) {
-    return event.respondWith(fetch(event.request))
+  if (request.url.includes('/api/')) {
+    return event.respondWith(fetch(request))
   }
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request).then((response) => {
-        // Cache new responses for static assets
-        if (event.request.method === 'GET' && !event.request.url.includes('/api/')) {
+  // Navigations (page loads) go network-first so a redeploy's index.html —
+  // and the hashed /assets/* filenames it references — is picked up right
+  // away, instead of serving a stale page from a previous version.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
           const responseToCache = response.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache)
-          })
-        }
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache))
+          return response
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
+    )
+    return
+  }
+
+  // Build assets are content-hashed by Vite, so a cached response for a
+  // given URL is always valid — cache-first is safe here.
+  event.respondWith(
+    caches.match(request).then((response) => {
+      return response || fetch(request).then((response) => {
+        const responseToCache = response.clone()
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseToCache)
+        })
         return response
-      }).catch(() => {
-        // Return offline fallback if available
-        return caches.match('/')
       })
     })
   )
