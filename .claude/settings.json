@@ -12,8 +12,6 @@
       "Bash(tail -f /tmp/gram-frontend.log)",
       "Bash(lsof -i:8000)",
       "Bash(lsof -i:5173)",
-      "mcp__playwright__browser_navigate(url:localhost:5173)",
-      "mcp__playwright__browser_navigate(url:127.0.0.1:5173)",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_type",
@@ -24,6 +22,10 @@
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_wait_for",
       "Read(//tmp/gram-*.log)"
+    ],
+    "deny":[
+      "Bash(kubectl *)",
+      "Bash(helm *)"
     ]
   }
 }
