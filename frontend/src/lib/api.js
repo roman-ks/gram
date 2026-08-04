@@ -17,7 +17,7 @@ export const api = {
   addEntry: (body) => req('/entries', { method: 'POST', body: JSON.stringify(body) }),
   addFood: (body) => req('/foods', { method: 'POST', body: JSON.stringify(body) }),
   sameMeal: (meal, days = 5) => req(`/suggestions/same-meal?meal=${meal}&days=${days}`),
-  popular: (meal) => req(`/suggestions/popular${meal ? `?meal=${meal}` : ''}`),
+  popular: (meal, limit) => req(`/suggestions/popular?${meal ? `meal=${meal}&` : ''}${limit ? `limit=${limit}` : ''}`),
   allFoods: () => req('/foods?limit=1000'),
   createRecipe: (body) => req('/recipes', { method: 'POST', body: JSON.stringify(body) }),
   deleteEntry: (id) => req(`/entries/${id}`, { method: 'DELETE' }),

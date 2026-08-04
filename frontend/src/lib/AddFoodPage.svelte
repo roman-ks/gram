@@ -32,15 +32,25 @@
   let showNewFood = false
   let foodsMap = {}  // food_id -> full food object (for nutrition preview)
 
+  const DEFAULT_GRAMS = 100
+
   $: source, meal, loadSuggestions()
 
   async function loadSuggestions() {
     error = ''
     try {
       if (source === 'all') {
-        const foods = await api.allFoods()
+        const [foods, history] = await Promise.all([
+          api.allFoods(),
+          api.popular(null, 1000).catch(() => []),
+        ])
         foodsMap = Object.fromEntries(foods.map((f) => [f.id, f]))
-        suggestions = foods.map((f) => ({ food_id: f.id, food_name: f.name, last_amount_grams: null }))
+        const lastAmountByFood = Object.fromEntries(history.map((h) => [h.food_id, h.last_amount_grams]))
+        suggestions = foods.map((f) => ({
+          food_id: f.id,
+          food_name: f.name,
+          last_amount_grams: lastAmountByFood[f.id] ?? DEFAULT_GRAMS,
+        }))
       } else {
         if (Object.keys(foodsMap).length === 0) {
           api.allFoods().then((foods) => {
@@ -176,7 +186,7 @@
       <button class="btn btn-outline btn-sm w-full" on:click={openNewFood}>
         {t('add_missing')}
       </button>
-      <div class="flex gap-2">
+      <form class="flex gap-2" on:submit|preventDefault={save}>
         <input
           class="input input-bordered flex-1"
           type="number"
@@ -184,8 +194,8 @@
           placeholder={t('grams_ph')}
           bind:value={grams}
         />
-        <button class="btn btn-primary" on:click={save} disabled={loading}>💾</button>
-      </div>
+        <button type="submit" class="btn btn-primary" disabled={loading}>💾</button>
+      </form>
       <div class="flex flex-wrap gap-1 px-1">
         <span class="stat-tag bg-amber-100">⚡{preview.calories}</span>
         <span class="stat-tag bg-blue-100">💪{preview.protein}g</span>
