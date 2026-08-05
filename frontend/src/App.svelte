@@ -101,6 +101,8 @@
   }
 </script>
 
+<svelte:window on:keydown={(e) => contextMenu && e.key === 'Escape' && dismissMenu()} />
+
 {#if page === 'add'}
   <AddFoodPage meal={activeMeal} on:saved={onSaved} />
 {:else}
@@ -166,8 +168,11 @@
   </main>
 
   {#if contextMenu}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       class="fixed inset-0 z-40"
+      aria-hidden="true"
       on:click={dismissMenu}
       on:contextmenu|preventDefault={dismissMenu}
     />

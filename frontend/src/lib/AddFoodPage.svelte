@@ -16,6 +16,20 @@
     return () => window.removeEventListener('popstate', handlePop)
   })
 
+  onMount(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function keepSelectedVisible() {
+      itemRefs[selectedFoodId]?.scrollIntoView({ block: 'nearest' })
+    }
+    vv.addEventListener('resize', keepSelectedVisible)
+    vv.addEventListener('scroll', keepSelectedVisible)
+    return () => {
+      vv.removeEventListener('resize', keepSelectedVisible)
+      vv.removeEventListener('scroll', keepSelectedVisible)
+    }
+  })
+
   const TABS = [
     { id: 'all',         key: 'src_all' },
     { id: 'recent',      key: 'src_recent' },
@@ -31,6 +45,7 @@
   let error = ''
   let showNewFood = false
   let foodsMap = {}  // food_id -> full food object (for nutrition preview)
+  let itemRefs = {}  // food_id -> list item element (for scrollIntoView on keyboard open)
 
   const DEFAULT_GRAMS = 100
 
@@ -169,6 +184,7 @@
       {:else}
         {#each suggestions as s}
           <button
+            bind:this={itemRefs[s.food_id]}
             class="w-full text-left px-3 py-3 border-b border-base-100 break-words leading-snug
               {selectedFoodId === s.food_id
                 ? 'bg-primary text-primary-content'
