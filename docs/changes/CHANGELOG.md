@@ -3,6 +3,7 @@
 One line per shipped change, newest first. Each links its full request in `done/`.
 Format: `YYYY-MM-DD · type · summary (#NNNN)`
 
+2026-08-05 · bug · Add-food page no longer hides the selected food item behind the on-screen keyboard: page is pinned to `visualViewport` (header fixed, only the list resizes) instead of relying on document scroll ([#0015](done/0015-mobile-keyboard-hides-selected-food.md))
 2026-08-04 · bug · Grams input on the add-food page now submits on Enter, same as clicking 💾 ([#0014](done/0014-enter-key-doesnt-submit-add-food.md))
 2026-08-04 · bug · "All" tab in add-food now prefills grams (last-used amount, or 100g default for never-logged foods), matching the other tabs ([#0013](done/0013-all-tab-no-grams-prefill.md))
 2026-08-04 · bug · "Recent (same meal)" suggestions now include entries logged today instead of only up to yesterday ([#0012](done/0012-recent-same-meal-not-updated.md))

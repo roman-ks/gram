@@ -1,6 +1,6 @@
 # 0015 — Selected food scrolls out of view when the on-screen keyboard opens (mobile)
 
-> Status: **open** · Type: **bug** · Created: 2026-08-05
+> Status: **done** · Shipped: 2026-08-05 · Type: **bug** · Created: 2026-08-05
 
 ## Goal
 On mobile, focusing the grams input on the add-food page should not cause the currently selected food item to be scrolled out of view / hidden behind the tab bar.
@@ -21,10 +21,10 @@ This was observed on Chrome for Android (viewport ~1080×2400 physical / ~360×8
 **Playwright cannot reproduce or verify this bug.** Confirmed by testing directly: with the browser resized to a 360×800 mobile-sized viewport, opening the add-food page and focusing the grams input, `window.visualViewport.height` stays at 800 throughout — it never shrinks, and no `resize` event fires. Playwright's Chromium runs on the desktop OS and never invokes a real on-screen keyboard (mobile viewport/device emulation only changes viewport size and touch/UA flags, not keyboard behavior), so there is nothing to trigger the layout shift this bug depends on. This isn't a matter of better selectors or timing — the browser genuinely never enters the state where the bug occurs. Automated end-to-end verification of the actual fix is not possible; see acceptance criteria below for how this is instead verified.
 
 ## Acceptance criteria
-- [ ] (Manual, on a real phone) After the grams input is focused and the on-screen keyboard is showing, the selected/highlighted food item is fully visible within the remaining visible viewport (not covered by the keyboard, and not hidden behind the tab bar header).
-- [ ] (Manual, on a real phone) If the selected item was already fully visible within the space that remains once the keyboard opens, its on-screen position does not change (no gratuitous scroll).
-- [ ] (Manual, on a real phone) If keeping the item's exact position isn't possible (e.g. it was low enough in a long list that the keyboard would cover it), the list scrolls just enough to bring the item fully into view rather than leaving it hidden.
-- [ ] (Manual, on a real phone) The grams input, save button, and macro preview row remain visible and usable while the keyboard is open (already true today — don't regress this).
+- [x] (Manual, on a real phone) After the grams input is focused and the on-screen keyboard is showing, the selected/highlighted food item is fully visible within the remaining visible viewport (not covered by the keyboard, and not hidden behind the tab bar header).
+- [x] (Manual, on a real phone) If the selected item was already fully visible within the space that remains once the keyboard opens, its on-screen position does not change (no gratuitous scroll).
+- [x] (Manual, on a real phone) If keeping the item's exact position isn't possible (e.g. it was low enough in a long list that the keyboard would cover it), the list scrolls just enough to bring the item fully into view rather than leaving it hidden.
+- [x] (Manual, on a real phone) The grams input, save button, and macro preview row remain visible and usable while the keyboard is open (already true today — don't regress this).
 - [x] (Automatable) The fix reacts to `window.visualViewport`'s `resize`/`scroll` events (or equivalent), not to Svelte's own reactivity alone — this can be confirmed by reading the implementation, or by dispatching a synthetic `visualViewport` resize event in a test and asserting the handler runs (e.g. that it calls `scrollIntoView` on the selected item). This checks the mechanism is wired up correctly; it cannot substitute for the manual checks above, since the real trigger condition (an actual keyboard shrinking the viewport) can't be produced in Playwright.
 - [x] Desktop behavior is unaffected (verify manually or via Playwright at a desktop viewport size — no `visualViewport` resize occurs there today, so this should trivially pass, but confirm no regression from the new listener/logic).
 
@@ -45,4 +45,5 @@ This was observed on Chrome for Android (viewport ~1080×2400 physical / ~360×8
   - Because the root is `position: fixed`, there's nothing left in normal document flow for the browser's native "scroll into view" to act on — that eliminates the competing scroll that caused attempt 1's jumping.
   - The header/tabs/bottom-bar stay `shrink-0` inside a `flex flex-col h-full` — since the *root's* height now shrinks with the keyboard (not just relying on `dvh`), the food list (`flex-1 overflow-y-auto`) is what absorbs the shrink, exactly per the user's ask ("resize only the list, use all remaining space").
   - Kept the `itemRefs` + `scrollIntoView({ block: 'nearest' })` call (now awaiting `tick()` after the resize so it reads post-resize layout) for the case where the selected item ends up below the new, shorter list viewport and needs an explicit scroll to come back into view.
-- Verified this session: `svelte-check` (0 errors, 0 warnings) and `vite build` succeed. **Not verified on a real phone yet** — that requires the reporter to re-test. Leaving status `open` and the manual ACs unticked until confirmed; the CHANGELOG entry for this fix was pulled until then too.
+- Verified this session: `svelte-check` (0 errors, 0 warnings) and `vite build` succeed.
+- Confirmed by reporter on a real phone: all manual ACs pass. Marking done.
