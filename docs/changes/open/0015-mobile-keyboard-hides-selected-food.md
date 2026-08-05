@@ -1,6 +1,6 @@
 # 0015 — Selected food scrolls out of view when the on-screen keyboard opens (mobile)
 
-> Status: **done** · Shipped: 2026-08-05 · Type: **bug** · Created: 2026-08-05
+> Status: **open** · Type: **bug** · Created: 2026-08-05
 
 ## Goal
 On mobile, focusing the grams input on the add-food page should not cause the currently selected food item to be scrolled out of view / hidden behind the tab bar.
@@ -33,10 +33,16 @@ This was observed on Chrome for Android (viewport ~1080×2400 physical / ~360×8
 - Out of scope: general redesign of the add-food page layout; desktop behavior (not affected, no on-screen keyboard).
 
 ## Notes / decisions
+
+### Attempt 1 (reverted from "done" — did not fix the bug on-device)
+- Added `itemRefs` (food_id → button element) and, on `window.visualViewport`'s `resize`/`scroll`, called `itemRefs[selectedFoodId]?.scrollIntoView({ block: 'nearest' })`.
+- Confirmed still broken on a real phone: reporter observed the top-selected item now jumping/scrolling out of view several times during the keyboard-open animation, worse than a single clean jump. Root cause: the page container relied on `h-dvh` in normal document flow (not `position: fixed`). On focus, the browser's own "scroll focused input into view" behavior scrolls the whole document (dragging the header along with it), and that native scroll fights with our own `scrollIntoView` call — two competing scroll actors produce the jumpiness, rather than fixing it.
+
+### Attempt 2 (current)
+- User's diagnosis/proposal: pin the header (back button + tabs) so it can't move, and resize only the list to fill the remaining space when the keyboard opens.
 - Implementation: `frontend/src/lib/AddFoodPage.svelte`
-  - Added `itemRefs` (food_id → button element), populated via `bind:this={itemRefs[s.food_id]}` on each list item button.
-  - Added a second `onMount` that, when `window.visualViewport` exists, listens for its `resize` and `scroll` events and calls `itemRefs[selectedFoodId]?.scrollIntoView({ block: 'nearest' })`. Listener is removed on unmount. Guarded with `if (!vv) return`, so it's a no-op on browsers without `visualViewport` support.
-  - Used `block: 'nearest'` (not `'center'`/`'start'`) so an already-visible item doesn't move — it only scrolls the minimum amount needed to bring a covered item back into view, per AC.
-  - No changes to desktop layout/logic; the listener only ever fires in response to real `visualViewport` events, which don't occur on desktop.
-- Verified: `svelte-check` (0 errors) and `vite build` succeed. Code path for the automatable AC reviewed directly (listener correctly bound to `visualViewport`, not Svelte reactivity).
-- **Not verified this session:** the four manual, real-phone acceptance criteria above (checkboxes left unticked). A live Playwright desktop check was also skipped — the shared headless browser profile was locked by another running process at the time, so it wasn't safe to reuse (killing it risked another session's work). The `svelte-check`/build results give reasonable confidence there's no desktop regression, but that AC should still get a real visual pass before fully trusting it.
+  - The whole page root is now `position: fixed; left/right: 0` with `top`/`height` driven from JS (`vvTop` / `vvHeight`, sourced from `window.visualViewport.offsetTop` / `.height`), falling back to `100dvh` before `visualViewport` is available.
+  - Because the root is `position: fixed`, there's nothing left in normal document flow for the browser's native "scroll into view" to act on — that eliminates the competing scroll that caused attempt 1's jumping.
+  - The header/tabs/bottom-bar stay `shrink-0` inside a `flex flex-col h-full` — since the *root's* height now shrinks with the keyboard (not just relying on `dvh`), the food list (`flex-1 overflow-y-auto`) is what absorbs the shrink, exactly per the user's ask ("resize only the list, use all remaining space").
+  - Kept the `itemRefs` + `scrollIntoView({ block: 'nearest' })` call (now awaiting `tick()` after the resize so it reads post-resize layout) for the case where the selected item ends up below the new, shorter list viewport and needs an explicit scroll to come back into view.
+- Verified this session: `svelte-check` (0 errors, 0 warnings) and `vite build` succeed. **Not verified on a real phone yet** — that requires the reporter to re-test. Leaving status `open` and the manual ACs unticked until confirmed; the CHANGELOG entry for this fix was pulled until then too.

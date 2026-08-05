@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher, onMount, tick } from 'svelte'
   import { api } from './api.js'
   import NewFoodPage from './NewFoodPage.svelte'
   import { t } from './i18n.js'
@@ -16,17 +16,33 @@
     return () => window.removeEventListener('popstate', handlePop)
   })
 
+  // Pin the page to window.visualViewport (top + height) instead of trusting
+  // the layout viewport / 100dvh. When the on-screen keyboard opens on mobile,
+  // the browser also tries to auto-scroll the focused input into view; if our
+  // container isn't position:fixed, that native scroll drags the whole page
+  // (header included) and fights with our own scrollIntoView below, causing
+  // visible jumps. Pinning removes the native scroll: there's nothing left in
+  // normal document flow for the browser to scroll, so only our JS-driven
+  // resize (which only changes the list's height, not its scroll offset)
+  // takes effect.
+  let vvTop = 0
+  let vvHeight = null  // null until visualViewport is available -> fall back to 100dvh
+
   onMount(() => {
     const vv = window.visualViewport
     if (!vv) return
-    function keepSelectedVisible() {
+    async function syncViewport() {
+      vvTop = vv.offsetTop
+      vvHeight = vv.height
+      await tick()
       itemRefs[selectedFoodId]?.scrollIntoView({ block: 'nearest' })
     }
-    vv.addEventListener('resize', keepSelectedVisible)
-    vv.addEventListener('scroll', keepSelectedVisible)
+    syncViewport()
+    vv.addEventListener('resize', syncViewport)
+    vv.addEventListener('scroll', syncViewport)
     return () => {
-      vv.removeEventListener('resize', keepSelectedVisible)
-      vv.removeEventListener('scroll', keepSelectedVisible)
+      vv.removeEventListener('resize', syncViewport)
+      vv.removeEventListener('scroll', syncViewport)
     }
   })
 
@@ -148,75 +164,80 @@
     on:created={(e) => onFoodCreated(e.detail)}
   />
 {:else}
-  <div class="flex flex-col h-dvh max-w-md mx-auto">
-    <!-- back -->
-    <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
-      <button class="btn btn-ghost btn-sm" on:click={() => history.back()}>
-        ← {t('back')}
-      </button>
-      <span class="text-sm font-medium opacity-60">{t('slot_' + meal)}</span>
-    </div>
-
-    <!-- tab strip -->
-    <div class="overflow-x-auto shrink-0 px-2 pt-2 pb-1">
-      <div role="tablist" class="flex gap-1 flex-nowrap min-w-max">
-        {#each TABS as tab}
-          <button
-            role="tab"
-            class="px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
-              {source === tab.id
-                ? 'bg-primary text-primary-content'
-                : 'bg-base-200 text-base-content hover:bg-base-300'}"
-            on:click={() => (source = tab.id)}
-          >
-            {t(tab.key)}
-          </button>
-        {/each}
+  <div
+    class="fixed left-0 right-0"
+    style="top: {vvTop}px; height: {vvHeight !== null ? vvHeight + 'px' : '100dvh'};"
+  >
+    <div class="flex flex-col h-full max-w-md mx-auto">
+      <!-- back -->
+      <div class="flex items-center gap-2 px-3 py-2 border-b border-base-200 shrink-0">
+        <button class="btn btn-ghost btn-sm" on:click={() => history.back()}>
+          ← {t('back')}
+        </button>
+        <span class="text-sm font-medium opacity-60">{t('slot_' + meal)}</span>
       </div>
-    </div>
 
-    {#if error}<div class="alert alert-error text-sm mx-2 my-1 shrink-0">{error}</div>{/if}
+      <!-- tab strip -->
+      <div class="overflow-x-auto shrink-0 px-2 pt-2 pb-1">
+        <div role="tablist" class="flex gap-1 flex-nowrap min-w-max">
+          {#each TABS as tab}
+            <button
+              role="tab"
+              class="px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
+                {source === tab.id
+                  ? 'bg-primary text-primary-content'
+                  : 'bg-base-200 text-base-content hover:bg-base-300'}"
+              on:click={() => (source = tab.id)}
+            >
+              {t(tab.key)}
+            </button>
+          {/each}
+        </div>
+      </div>
 
-    <!-- food list fills remaining space -->
-    <div class="flex-1 overflow-y-auto mx-2 border border-base-300 rounded-box">
-      {#if suggestions.length === 0}
-        <div class="flex items-center px-3 py-4 opacity-40">{t('none')}</div>
-      {:else}
-        {#each suggestions as s}
-          <button
-            bind:this={itemRefs[s.food_id]}
-            class="w-full text-left px-3 py-3 border-b border-base-100 break-words leading-snug
-              {selectedFoodId === s.food_id
-                ? 'bg-primary text-primary-content'
-                : 'hover:bg-base-200'}"
-            on:click={() => selectFood(s.food_id)}
-          >
-            {s.food_name}
-          </button>
-        {/each}
-      {/if}
-    </div>
+      {#if error}<div class="alert alert-error text-sm mx-2 my-1 shrink-0">{error}</div>{/if}
 
-    <!-- bottom bar: always visible -->
-    <div class="shrink-0 p-2 border-t border-base-200 space-y-2">
-      <button class="btn btn-outline btn-sm w-full" on:click={openNewFood}>
-        {t('add_missing')}
-      </button>
-      <form class="flex gap-2" on:submit|preventDefault={save}>
-        <input
-          class="input input-bordered flex-1"
-          type="number"
-          inputmode="decimal"
-          placeholder={t('grams_ph')}
-          bind:value={grams}
-        />
-        <button type="submit" class="btn btn-primary" disabled={loading}>💾</button>
-      </form>
-      <div class="flex flex-wrap gap-1 px-1">
-        <span class="stat-tag bg-amber-100">⚡{preview.calories}</span>
-        <span class="stat-tag bg-blue-100">💪{preview.protein}g</span>
-        <span class="stat-tag bg-green-100">🥑{preview.fat}g</span>
-        <span class="stat-tag bg-yellow-100">🌾{preview.carbs}g</span>
+      <!-- food list fills remaining space -->
+      <div class="flex-1 overflow-y-auto mx-2 border border-base-300 rounded-box">
+        {#if suggestions.length === 0}
+          <div class="flex items-center px-3 py-4 opacity-40">{t('none')}</div>
+        {:else}
+          {#each suggestions as s}
+            <button
+              bind:this={itemRefs[s.food_id]}
+              class="w-full text-left px-3 py-3 border-b border-base-100 break-words leading-snug
+                {selectedFoodId === s.food_id
+                  ? 'bg-primary text-primary-content'
+                  : 'hover:bg-base-200'}"
+              on:click={() => selectFood(s.food_id)}
+            >
+              {s.food_name}
+            </button>
+          {/each}
+        {/if}
+      </div>
+
+      <!-- bottom bar: always visible -->
+      <div class="shrink-0 p-2 border-t border-base-200 space-y-2">
+        <button class="btn btn-outline btn-sm w-full" on:click={openNewFood}>
+          {t('add_missing')}
+        </button>
+        <form class="flex gap-2" on:submit|preventDefault={save}>
+          <input
+            class="input input-bordered flex-1"
+            type="number"
+            inputmode="decimal"
+            placeholder={t('grams_ph')}
+            bind:value={grams}
+          />
+          <button type="submit" class="btn btn-primary" disabled={loading}>💾</button>
+        </form>
+        <div class="flex flex-wrap gap-1 px-1">
+          <span class="stat-tag bg-amber-100">⚡{preview.calories}</span>
+          <span class="stat-tag bg-blue-100">💪{preview.protein}g</span>
+          <span class="stat-tag bg-green-100">🥑{preview.fat}g</span>
+          <span class="stat-tag bg-yellow-100">🌾{preview.carbs}g</span>
+        </div>
       </div>
     </div>
   </div>
