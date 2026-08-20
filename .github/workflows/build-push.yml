@@ -7,6 +7,10 @@ jobs:
     steps:
         - uses: actions/checkout@v7
         - run: ls -la
+        - name: Install Buildah
+          run: | 
+            sudo apt update
+            sudo apt install -y buildah
         - name: Build Image
           uses: redhat-actions/buildah-build@v3
           with:
