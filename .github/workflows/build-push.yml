@@ -1,0 +1,9 @@
+name: build-push
+run-name: ${{ github.actor }} is building Gram
+on: [push]
+jobs:
+  print-runner-info:
+    runs-on: arc-runner-set
+    steps:
+        - uses: actions/checkout@v7
+        - run: ls -la
