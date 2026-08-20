@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} is building Gram
 on: [push]
 jobs:
   print-runner-info:
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-gram
     steps:
         - uses: actions/checkout@v7
         - run: ls -la
