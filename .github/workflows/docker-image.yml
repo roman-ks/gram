@@ -10,5 +10,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        push: true
+        tags: oci-registry.pi.home/gram:{{ $github.sha }}
+    # - name: Build the Docker image
+    #   run: docker build . --file Dockerfile --tag oci-registry.pi.home/gram:$(git rev-parse --short HEAD)
+    # - 
