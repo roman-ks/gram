@@ -7,3 +7,10 @@ jobs:
     steps:
         - uses: actions/checkout@v7
         - run: ls -la
+        - name: Build Image
+          uses: redhat-actions/buildah-build@v3
+          with:
+            image: gram
+            tags: v1 ${{ github.sha }}
+            containerfiles: |
+              ./Dockerfile
