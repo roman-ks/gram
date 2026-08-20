@@ -10,7 +10,7 @@ jobs:
         - name: Install Buildah
           run: | 
             sudo apt update
-            sudo apt install -y buildah
+            sudo apt install -y podman
         - name: Configure Buildah
           run: |
             podman system migrate
