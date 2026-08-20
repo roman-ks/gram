@@ -13,10 +13,10 @@ jobs:
             sudo apt install -y podman
         - name: Configure Buildah
           run: |
-            sudo usermod --add-subuids 100000-165535 $USER
-            sudo usermod --add-subgids 100000-165535 $USER
-            ls -l /usr/bin/newuidmap /usr/bin/newgidmap
-            podman system migrate
+            user=$(whoami)
+            sudo usermod --add-subuids 100000-165535 $user
+            sudo usermod --add-subgids 100000-165535 $user
+            sudo podman system migrate
         - name: Build Image
           uses: redhat-actions/buildah-build@v3
           with:
