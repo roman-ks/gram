@@ -11,6 +11,9 @@ jobs:
           run: | 
             sudo apt update
             sudo apt install -y buildah
+        - name: Configure Buildah
+          run: |
+            podman system migrate
         - name: Build Image
           uses: redhat-actions/buildah-build@v3
           with:
