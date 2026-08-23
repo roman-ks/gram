@@ -21,10 +21,12 @@ jobs:
         repository: roman-ks/home-projects-parent-k8s
         ref: gha
         token: ${{ secrets.HOME_PROJECTS_PARENT_K8S_RO_PAT }}
+        path: home-projects-parent-k8s
     - run: |
         pwd
         ls
         echo $GITHUB_WORKSPACE
+        ls $GITHUB_WORKSPACE/home-projects-parent-k8s/
     # - name: Build the Docker image
     #   run: docker build . --file Dockerfile --tag oci-registry.pi.home/gram:$(git rev-parse --short HEAD)
     # - 
