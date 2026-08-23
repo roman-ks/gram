@@ -28,6 +28,9 @@ jobs:
         sed -i -E 's/^(\s*tag: ").*(")$/\1${{ github.sha }}\2/' "$gitops_root/charts/gram/gitops-values.yaml"
         cat "$gitops_root/charts/gram/gitops-values.yaml"
         
+        git config --global user.email "noreply@example.com"
+        git config --global user.name "GitHub Action Runner"
+
         git -C "$gitops_root" add charts/gram/gitops-values.yaml
         git -C "$gitops_root" commit -m "GHA: Update gram tag to ${{ github.sha }}"
         git -C "$gitops_root" remote set-url origin https://${{ secrets.HOME_PROJECTS_PARENT_K8S_PAT }}@github.com/roman-ks/home-projects-parent-k8s.git
