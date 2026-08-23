@@ -18,7 +18,7 @@ jobs:
     #     tags: oci-registry.pi.home/gram:${{ github.sha }}
     - uses: actions/checkout@v4
       with: 
-        repository: https://github.com/roman-ks/home-projects-parent-k8s.git
+        repository: roman-ks/home-projects-parent-k8s
         ref: gha
     - run: |
         pwd
