@@ -34,7 +34,7 @@ jobs:
         git -C "$gitops_root" add charts/gram/gitops-values.yaml
         git -C "$gitops_root" commit -m "GHA: Update gram tag to ${{ github.sha }}"
         git -C "$gitops_root" remote set-url origin https://${{ secrets.HOME_PROJECTS_PARENT_K8S_PAT }}@github.com/roman-ks/home-projects-parent-k8s.git
-        git -C "$gitops_root" push remote origin
+        git -C "$gitops_root" push origin gha
 
     # - name: Build the Docker image
     #   run: docker build . --file Dockerfile --tag oci-registry.pi.home/gram:$(git rev-parse --short HEAD)
