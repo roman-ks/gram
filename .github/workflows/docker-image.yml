@@ -10,12 +10,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build and push
-      uses: docker/build-push-action@v7
-      with:
-        context: .
-        push: true
-        tags: oci-registry.pi.home/gram:${{ github.sha }}
+    # - name: Build and push
+    #   uses: docker/build-push-action@v7
+    #   with:
+    #     context: .
+    #     push: true
+    #     tags: oci-registry.pi.home/gram:${{ github.sha }}
+    - uses: actions/checkout@v4
+      with: 
+        repository: https://github.com/roman-ks/home-projects-parent-k8s.git
+        ref: gha
+    - run: |
+        pwd
+        ls
+        echo $GITHUB_WORKSPACE
     # - name: Build the Docker image
     #   run: docker build . --file Dockerfile --tag oci-registry.pi.home/gram:$(git rev-parse --short HEAD)
     # - 
