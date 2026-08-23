@@ -27,6 +27,9 @@ jobs:
         ls
         echo $GITHUB_WORKSPACE
         ls $GITHUB_WORKSPACE/home-projects-parent-k8s/
+        sed -i -E 's/^(\s*tag: ").*(")$/\1${{ github.sha }}\2/' $GITHUB_WORKSPACE/charts/gram/gitops-values.yaml
+        cat $GITHUB_WORKSPACE/charts/gram/gitops-values.yaml
+
     # - name: Build the Docker image
     #   run: docker build . --file Dockerfile --tag oci-registry.pi.home/gram:$(git rev-parse --short HEAD)
     # - 
