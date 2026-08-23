@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gram
+  annotations:
+    {{- if .Values.gram.clusterIssuer }}
+    # cert-manager mints + auto-renews the cert in .spec.tls[].secretName.
+    cert-manager.io/cluster-issuer: {{ .Values.gram.clusterIssuer }}
+    {{- end }}
+
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: {{ .Values.gram.cname }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gram
+            port:
+              number: 8000
+  tls:
+  - hosts:
+    - {{ .Values.gram.cname }}  
+    secretName: {{ .Values.gram.tlsSecretName }}
