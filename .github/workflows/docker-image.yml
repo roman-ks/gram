@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: main
+jobs:
+  build:
+    runs-on: arc-runner-set-gram
+    environment: gitops
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        push: true
+        tags: oci-registry.pi.home/gram:${{ github.sha }}
+    - uses: actions/checkout@v4
+      with: 
+        repository: roman-ks/home-projects-parent-k8s
+        ref: main
+        token: ${{ secrets.HOME_PROJECTS_PARENT_K8S_PAT }}
+        path: home-projects-parent-k8s
+    - name: Update image tag
+      run: |
+        gitops_root="$GITHUB_WORKSPACE/home-projects-parent-k8s"
+        sed -i -E 's/^(\s*tag: ").*(")$/\1${{ github.sha }}\2/' "$gitops_root/charts/gram/gitops-values.yaml"
+        cat "$gitops_root/charts/gram/gitops-values.yaml"
+        
+        git config --global user.email "noreply@example.com"
+        git config --global user.name "GitHub Action Runner"
+
+        git -C "$gitops_root" add charts/gram/gitops-values.yaml
+        git -C "$gitops_root" commit -m "GHA: Update gram tag to ${{ github.sha }}"
+        git -C "$gitops_root" remote set-url origin https://${{ secrets.HOME_PROJECTS_PARENT_K8S_PAT }}@github.com/roman-ks/home-projects-parent-k8s.git
+        git -C "$gitops_root" push origin main
