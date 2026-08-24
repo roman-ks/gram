@@ -1,7 +1,7 @@
 # Gram
 
 Self-hosted meal/calorie tracker. Svelte (Tailwind + DaisyUI) SPA + FastAPI + SQLite,
-runs in Docker on a Raspberry Pi. Design & decisions: [docs/DESIGN.md](docs/DESIGN.md).
+runs in K8s on a Raspberry Pi. Design & decisions: [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Run with Docker (prod-like)
 
@@ -47,6 +47,20 @@ backend/   FastAPI app (app/main.py), SQLite schema (app/db.py)
 frontend/  Vite + Svelte SPA (src/App.svelte)
 docs/      DESIGN.md
 ```
+
+## Deployment
+Relies on GitOps infra(GitHub self-hosted runner and ArgoCD) deployed in [home-projects-parent-k8s](https://github.com/roman-ks/home-projects-parent-k8s).
+The goal is to have application deployment require as little manual intervention as possible.
+
+Flow:
+1. Pushes to `main` branch trigger GitHub Action
+2. GitHub Action starts a self-hosted runner in K8s.
+3. The runner checks out this repo, builds the Docker image, 
+   and pushes it to the local registry tagged with the current 
+   commit SHA. It then checks out the [Gram Helm chart](https://github.com/roman-ks/home-projects-parent-k8s/tree/main/charts/gram)
+   from the GitOps repository, updates `gitops-values.yaml` with the new image
+   tag, commits the change, and pushes it back.
+4. [ArgoCD application](https://github.com/roman-ks/home-projects-parent-k8s/blob/kustomize/argocd/base/application-gram.yaml) watches GitOps repo, detects values change and auto-syncs to application in K8s
 
 ## Notes
 
