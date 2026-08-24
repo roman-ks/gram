@@ -60,7 +60,7 @@ Flow:
    commit SHA. It then checks out the [Gram Helm chart](https://github.com/roman-ks/home-projects-parent-k8s/tree/main/charts/gram)
    from the GitOps repository, updates `gitops-values.yaml` with the new image
    tag, commits the change, and pushes it back.
-4. [ArgoCD application](https://github.com/roman-ks/home-projects-parent-k8s/blob/kustomize/argocd/base/application-gram.yaml) watches GitOps repo, detects values change and auto-syncs to application in K8s
+4. [Argo CD application](https://github.com/roman-ks/home-projects-parent-k8s/blob/main/kustomize/argocd/base/application-gram.yaml) watches GitOps repo, detects values change and auto-syncs to application in K8s
 
 ## Notes
 
